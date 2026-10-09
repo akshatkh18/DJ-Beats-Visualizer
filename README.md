@@ -1,69 +1,81 @@
-# 🎧 AI DJ Visualizer
+# DJ Beats Visualizer
 
-[![Python](https://img.shields.io/badge/Python-3.10-blue?logo=python)](https://www.python.org/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.35-red?logo=streamlit)](https://streamlit.io/)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-![Built by Akshat](https://img.shields.io/badge/Built%20by-Akshat%20Gupta-blue)
+A Streamlit studio for exploring the rhythm and energy of an MP3 or WAV track.
 
-A fun and interactive Streamlit web app that:
-- 🌀 Visualizes the **tempo and beat structure** of uploaded songs
-- 🎼 **Guesses the genre** using spectral features (like tempo, ZCR, etc.)
-- 🕺 Shows **dancing GIFs** that change based on detected genre
-- 🎨 Supports **Retro**, **Night Mode**, and **Default** visual themes
-- 🔥 Lets users **vote** if the beat slaps or not
+## Features
 
----
+- Full-track audio playback; Librosa tempo and beat detection.
+- Three interactive RMS energy views: Energy curve, Pulse bars, Beat markers.
+- Four chart palettes: Electric lime, Soft violet, Coral, Ice blue.
+- Charcoal interface with responsive controls and analysis panels.
+- A simple tempo/spectral character heuristic, not an AI genre classifier.
 
-## 🚀 Features
+Charts are static analysis views, not animations synchronized to playback. Tempo
+estimates can be half/double the perceived tempo. Silence and clips under two
+seconds show no tempo. The empty state uses clearly labeled synthetic data.
 
-- Upload `.mp3` or `.wav` file
-- Detect tempo and total beat count
-- Genre detection based on audio features
-- Dynamic visualizer powered by Plotly
-- Genre-specific dancing animations (GIFs)
-- Light/Dark/Retro UI themes
-- Voting panel (Slaps / Not Vibe)
+## Run locally
 
----
+Use **Python 3.13**, the tested runtime.
 
-## 🧠 Tech Stack
-
-- [Streamlit](https://streamlit.io/)
-- [Librosa](https://librosa.org/) for audio analysis
-- [Plotly](https://plotly.com/python/) for visualizations
-- Python (Backend + Visualization)
-
----
-
-## 📁 Project Structure
-
-<pre>
-AI-DJ-Visualizer/
-├── app.py
-├── requirements.txt
-├── README.md
-└── assets/
-    ├── edm.gif
-    ├── chill.gif
-    ├── hiphop.gif
-    └── pop.gif
-</pre>
-
-
-## 🌐 Optional: Deployment
-
-You can deploy this to [Streamlit Cloud](https://streamlit.io/cloud) with one click 👇
-
-[![Deploy to Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/)
-
-
----
-
-## 🛠️ Installation
-
-```bash
-git clone https://github.com/akshatkh18/DJ-Beats-Visulaizer.git
+```sh
+git clone https://github.com/akshatkh18/DJ-Beats-Visualizer.git
 cd DJ-Beats-Visualizer
-pip install -r requirements.txt
-streamlit run app.py
+python -m venv .venv
 ```
+
+Activate with `.\.venv\Scripts\Activate.ps1` on Windows PowerShell, or
+`source .venv/bin/activate` on macOS/Linux. Then, from the repository root:
+
+```sh
+python -m pip install -r requirements.txt
+python -m streamlit run app.py
+```
+
+Open the URL Streamlit prints (normally http://localhost:8501). The first analysis
+may take longer while numerical routines initialize.
+
+## Streamlit Community Cloud
+
+1. Push these files to GitHub or merge the production-readiness PR.
+2. Create an app at [Streamlit Community Cloud](https://share.streamlit.io/).
+3. Select this repository, the branch containing these changes, and **app.py**.
+4. Select **Python 3.13** in advanced settings and deploy.
+
+The root `requirements.txt` pins direct dependencies. `.streamlit/config.toml`
+supplies the dark theme and a 50 MB upload limit. No secrets or API keys are needed.
+Standard SoundFile Windows/Linux wheels bundle libsndfile with MP3 support;
+FFmpeg and a `packages.txt` are not required when using these wheels.
+
+## Limits and data handling
+
+- MP3/WAV, up to 50 MB, 8–192 kHz, and up to eight channels.
+- Analysis covers the first **180 seconds**, mixed to mono at 22,050 Hz.
+- Decoding happens in memory. The app creates **no temporary upload files**.
+- Only the latest analysis is saved in each user's Streamlit session. Changing
+  chart controls reuses it; removing/replacing the upload clears/replaces it.
+- No shared audio cache or database. Streamlit holds uploaded audio and playback
+  data in server memory for its session/media lifecycle. Processing is not browser-only.
+
+## Files
+
+```text
+app.py                     Streamlit interface and Plotly charts
+audio_analysis.py          Validated decoding and Librosa analysis
+requirements.txt           Pinned runtime dependencies
+.streamlit/config.toml     Theme and upload configuration
+tests/test_audio.py        Generated WAV/MP3 and edge-case regression tests
+tests/test_app.py          Streamlit rendering and palette/style checks
+```
+
+## Checks
+
+```sh
+python -m pip check
+python -m compileall -q app.py audio_analysis.py tests
+python -m unittest discover -s tests -v
+```
+
+Tests generate their audio in memory; no sample downloads are needed. Browser checks
+should cover desktop/mobile layout, upload, playback, control changes, and removing
+a track. The test suite does not replace a deployment smoke test.

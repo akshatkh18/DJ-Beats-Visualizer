@@ -1,5 +1,5 @@
-streamlit
-librosa
-numpy
-plotly
-soundfile
+streamlit==1.50.0
+librosa==0.11.0
+numpy==2.2.6
+plotly==6.3.1
+soundfile==0.13.1
