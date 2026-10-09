@@ -3,6 +3,7 @@ import librosa
 import numpy as np
 import soundfile as sf
 import tempfile
+import os
 import plotly.graph_objects as go
 import time
 
@@ -25,20 +26,24 @@ def load_audio(uploaded_file):
     with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
         tmp_file.write(uploaded_file.read())
         tmp_path = tmp_file.name
-    y, sr = librosa.load(tmp_path)
-    return y, sr
+    try:
+        y, sr = librosa.load(tmp_path)
+        return y, sr
+    finally:
+        os.unlink(tmp_path)
 
 # Analyze tempo and beat
 def analyse_music(y, sr):
     tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
     beat_times = librosa.frames_to_time(beat_frames, sr=sr)
-    return tempo, beat_times
+    return float(np.asarray(tempo).reshape(-1)[0]), beat_times
 
 # Genre guess + matching gif
 def guess_genre(y, sr):
     zcr = np.mean(librosa.feature.zero_crossing_rate(y))
     spectral_centroid = np.mean(librosa.feature.spectral_centroid(y=y, sr=sr))
     tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
+    tempo = float(np.asarray(tempo).reshape(-1)[0])
 
     if tempo > 140 and spectral_centroid > 3000:
         return "EDM / Techno", "assets/edm.gif"
@@ -96,13 +101,11 @@ if uploaded_file:
     genre, gif_path = guess_genre(y, sr)
     st.info(f"🎧 Genre Guess: **{genre}**")
 
-    # Keep dancing while music plays 🎉
     st.image(gif_path, use_column_width=True)
 
     st.write("💃 Live Beat Visualizer below!")
     visualize_beats(beat_times, theme)
 
-    # Voting section
     st.write("---")
     st.subheader("🔥 Rate the Beat")
 
